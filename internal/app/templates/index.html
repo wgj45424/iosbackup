@@ -340,7 +340,22 @@
               </div>
               <div style="display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center">
                 <div style="width:170px;min-width:140px;font-size:13.5px;font-weight:600" data-i18n="bset.interval">{{t $.Locale "bset.interval"}}</div>
-                <select class="iosbk-in" id="backupInterval-{{$d.UDID}}" aria-label="{{t $.Locale "bset.interval"}}" data-i18n-aria="bset.interval" style="min-width:150px"><option value="6" {{if eq $cfg.BackupInterval 6}}selected{{end}} data-i18n="bset.h6">{{t $.Locale "bset.h6"}}</option><option value="12" {{if eq $cfg.BackupInterval 12}}selected{{end}} data-i18n="bset.h12">{{t $.Locale "bset.h12"}}</option><option value="24" {{if eq $cfg.BackupInterval 24}}selected{{end}} data-i18n="bset.h24">{{t $.Locale "bset.h24"}}</option><option value="48" {{if eq $cfg.BackupInterval 48}}selected{{end}} data-i18n="bset.h48">{{t $.Locale "bset.h48"}}</option></select>
+                <select class="iosbk-in" id="backupInterval-{{$d.UDID}}" data-backup-interval="{{$cfg.BackupInterval}}" aria-label="{{t $.Locale "bset.interval"}}" data-i18n-aria="bset.interval" style="min-width:150px"><option value="6" {{if and (ne $cfg.ScheduleMode "weekly") (eq $cfg.BackupInterval 6)}}selected{{end}} data-i18n="bset.h6">{{t $.Locale "bset.h6"}}</option><option value="12" {{if and (ne $cfg.ScheduleMode "weekly") (eq $cfg.BackupInterval 12)}}selected{{end}} data-i18n="bset.h12">{{t $.Locale "bset.h12"}}</option><option value="24" {{if and (ne $cfg.ScheduleMode "weekly") (eq $cfg.BackupInterval 24)}}selected{{end}} data-i18n="bset.h24">{{t $.Locale "bset.h24"}}</option><option value="48" {{if and (ne $cfg.ScheduleMode "weekly") (eq $cfg.BackupInterval 48)}}selected{{end}} data-i18n="bset.h48">{{t $.Locale "bset.h48"}}</option><option value="weekly" {{if eq $cfg.ScheduleMode "weekly"}}selected{{end}} data-i18n="bset.weekly">{{t $.Locale "bset.weekly"}}</option></select>
+              </div>
+              <div id="backupWeekdayRow-{{$d.UDID}}" class="{{if ne $cfg.ScheduleMode "weekly"}}hidden{{end}}">
+                <div style="display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center">
+                  <label for="backupWeekday-{{$d.UDID}}" style="width:170px;min-width:140px;font-size:13.5px;font-weight:600" data-i18n="bset.weekday">{{t $.Locale "bset.weekday"}}</label>
+                  <select class="iosbk-in" id="backupWeekday-{{$d.UDID}}" aria-describedby="weeklyHint-{{$d.UDID}}" style="min-width:150px">
+                    <option value="0" {{if eq $cfg.BackupWeekday 0}}selected{{end}} data-i18n="bset.weekday.0">{{t $.Locale "bset.weekday.0"}}</option>
+                    <option value="1" {{if eq $cfg.BackupWeekday 1}}selected{{end}} data-i18n="bset.weekday.1">{{t $.Locale "bset.weekday.1"}}</option>
+                    <option value="2" {{if eq $cfg.BackupWeekday 2}}selected{{end}} data-i18n="bset.weekday.2">{{t $.Locale "bset.weekday.2"}}</option>
+                    <option value="3" {{if eq $cfg.BackupWeekday 3}}selected{{end}} data-i18n="bset.weekday.3">{{t $.Locale "bset.weekday.3"}}</option>
+                    <option value="4" {{if eq $cfg.BackupWeekday 4}}selected{{end}} data-i18n="bset.weekday.4">{{t $.Locale "bset.weekday.4"}}</option>
+                    <option value="5" {{if eq $cfg.BackupWeekday 5}}selected{{end}} data-i18n="bset.weekday.5">{{t $.Locale "bset.weekday.5"}}</option>
+                    <option value="6" {{if eq $cfg.BackupWeekday 6}}selected{{end}} data-i18n="bset.weekday.6">{{t $.Locale "bset.weekday.6"}}</option>
+                  </select>
+                </div>
+                <p id="weeklyHint-{{$d.UDID}}" class="history-note" data-i18n="bset.weeklyHint">{{t $.Locale "bset.weeklyHint"}}</p>
               </div>
               <div style="display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center">
                 <div style="width:170px;min-width:140px"><div style="font-size:13.5px;font-weight:600" data-i18n="bset.minBattery">{{t $.Locale "bset.minBattery"}}</div><div style="font-size:11.5px;color:#718090;margin-top:2px;line-height:1.4" data-i18n="bset.minBatteryHint">{{t $.Locale "bset.minBatteryHint"}}</div></div>
