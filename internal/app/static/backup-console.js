@@ -2,10 +2,10 @@
   'use strict';
   var doc = global.document;
   var groups = {
-    schedule: ['start_time', 'end_time', 'backup_interval', 'min_battery_level', 'only_when_charging', 'auto_backup_enabled'],
+    schedule: ['start_time', 'end_time', 'schedule_mode', 'backup_weekday', 'backup_interval', 'min_battery_level', 'only_when_charging', 'auto_backup_enabled'],
     connection: ['backup_directory', 'network_address']
   };
-  var fields = {start_time:'startTime',end_time:'endTime',backup_interval:'backupInterval',min_battery_level:'minBattery',only_when_charging:'chargingToggle',auto_backup_enabled:'autoBackupToggle',backup_directory:'backupDir',network_address:'networkAddress'};
+  var fields = {start_time:'startTime',end_time:'endTime',backup_weekday:'backupWeekday',backup_interval:'backupInterval',min_battery_level:'minBattery',only_when_charging:'chargingToggle',auto_backup_enabled:'autoBackupToggle',backup_directory:'backupDir',network_address:'networkAddress'};
   var saved = {}, history = {}, layers = [], sequence = 0, recent = {};
   var pageStorageKey = 'iosbk.console.page.v1', pageStorageValue = '';
   function isBackupRunning(device) { return !!device.backing_up && (!device.active_operation || device.active_operation === 'backup'); }
@@ -68,16 +68,20 @@
     Object.keys(fields).forEach(function (key) {
       var n = get(fields[key] + '-' + u);
       config[key] = /Toggle$/.test(fields[key]) ? n.classList.contains('on') : n.value;
-      if (key === 'backup_interval' || key === 'min_battery_level') config[key] = Number(config[key]);
+      if (key === 'backup_weekday' || key === 'backup_interval' || key === 'min_battery_level') config[key] = Number(config[key]);
     });
+    var interval = get('backupInterval-' + u);
+    config.schedule_mode = interval.value === 'weekly' ? 'weekly' : 'interval';
+    if (config.schedule_mode === 'weekly') config.backup_interval = (saved[u] && saved[u].backup_interval) || Number(interval.dataset.backupInterval) || 24;
     config.network_address = config.network_address.trim();
     return config;
   }
   function restoreConfig(u, group) {
     groups[group].forEach(function (key) {
+      if (key === 'schedule_mode') return;
       var n = get(fields[key] + '-' + u), value = saved[u][key];
       if (/Toggle$/.test(fields[key])) { n.classList.toggle('on', value); n.setAttribute('aria-checked', String(value)); }
-      else n.value = value;
+      else n.value = key === 'backup_interval' && saved[u].schedule_mode === 'weekly' ? 'weekly' : value;
     });
     text('minBatLabel-' + u, saved[u].min_battery_level + '%');
     get('autoNote-' + u).classList.toggle('hidden', !saved[u].auto_backup_enabled);
@@ -88,11 +92,13 @@
     var content=target&&target.closest?target.closest('[data-settings-group]'):null;
     if(!content)return;
     var u=content.dataset.udid,group=content.dataset.settingsGroup,hint=content.querySelector('[data-group-dirty]');
+    if(group==='schedule')get('backupWeekdayRow-'+u).classList.toggle('hidden',get('backupInterval-'+u).value!=='weekly');
     if(hint)hint.classList.toggle('hidden',JSON.stringify(configPayload(group,readConfig(u)))===JSON.stringify(configPayload(group,saved[u])));
   }
   function settingsSummary(u) {
     var config = saved[u]; if (!config) return;
-    text('scheduleSummary-' + u, tr(config.auto_backup_enabled ? 'console.scheduleOn' : 'console.scheduleOff', {start:config.start_time,end:config.end_time,hours:config.backup_interval}));
+    var summary = config.schedule_mode === 'weekly' ? 'console.scheduleWeekly' : 'console.schedule';
+    text('scheduleSummary-' + u, tr(summary + (config.auto_backup_enabled ? 'On' : 'Off'), {start:config.start_time,end:config.end_time,hours:config.backup_interval,weekday:tr('bset.weekday.' + config.backup_weekday)}));
     text('connectionSummary-' + u, (config.network_address || tr('console.autoAddress')) + ' · ' + config.backup_directory);
   }
   function settings(u, group) {
@@ -261,6 +267,7 @@
     var state = readPageState(), expanded = '';
     doc.querySelectorAll('[data-udid-card]').forEach(function (card) {
       var u = card.dataset.udidCard; saved[u] = readConfig(u); settingsSummary(u);
+      get('backupWeekdayRow-' + u).classList.toggle('hidden', saved[u].schedule_mode !== 'weekly');
       card.querySelectorAll('.tgl').forEach(function (toggle) { toggle.setAttribute('role','switch'); toggle.setAttribute('aria-checked',String(toggle.classList.contains('on'))); });
       var head=card.querySelector('[data-card-toggle]'); if(head)head.setAttribute('aria-expanded','false');
       // 先恢复页签外观，只有实际展开的设备才发起数据请求。
