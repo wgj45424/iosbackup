@@ -1003,6 +1003,7 @@ func mergeBackupConfig(dst *backupConfig, rawFields map[string]json.RawMessage) 
 	known := map[string]any{
 		"name": &dst.Name, "start_time": &dst.StartTime, "end_time": &dst.EndTime,
 		"backup_interval": &dst.BackupInterval, "min_battery_level": &dst.MinBatteryLevel,
+		"schedule_mode": &dst.ScheduleMode, "backup_weekday": &dst.BackupWeekday,
 		"only_when_charging": &dst.OnlyWhenCharging, "backup_directory": &dst.BackupDirectory,
 		"auto_backup_enabled": &dst.AutoBackupEnabled, "network_address": &dst.NetworkAddress,
 		"last_backup_connection": &dst.LastBackupConnection, "restore_enabled": &dst.RestoreEnabled,

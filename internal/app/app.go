@@ -53,7 +53,9 @@ type backupConfig struct {
 	DeviceType            string             `json:"device_type,omitempty"` // 移除设备后保留型号，供恢复面板展示
 	StartTime             string             `json:"start_time"`
 	EndTime               string             `json:"end_time"`
-	BackupInterval        int                `json:"backup_interval"` // 小时
+	BackupInterval        int                `json:"backup_interval"`         // 小时
+	ScheduleMode          string             `json:"schedule_mode,omitempty"` // 空值兼容旧版小时间隔
+	BackupWeekday         int                `json:"backup_weekday"`          // 星期日=0，星期六=6
 	MinBatteryLevel       int                `json:"min_battery_level"`
 	OnlyWhenCharging      bool               `json:"only_when_charging"`
 	BackupDirectory       string             `json:"backup_directory"`

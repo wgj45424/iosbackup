@@ -28,6 +28,12 @@ func validateBackupConfig(cfg backupConfig, allowedRoots []string) error {
 	if err := validateClock("end_time", cfg.EndTime); err != nil {
 		return err
 	}
+	if cfg.ScheduleMode != "" && cfg.ScheduleMode != "interval" && cfg.ScheduleMode != "weekly" {
+		return i18n.NewError(i18n.ConfigFieldInvalid, map[string]any{"field": "schedule_mode"})
+	}
+	if cfg.BackupWeekday < 0 || cfg.BackupWeekday > 6 {
+		return i18n.NewError(i18n.ConfigFieldInvalid, map[string]any{"field": "backup_weekday"})
+	}
 	if cfg.BackupInterval < 1 || cfg.BackupInterval > 720 {
 		return i18n.NewError(i18n.BackupIntervalRange, map[string]any{"min": 1, "max": 720})
 	}

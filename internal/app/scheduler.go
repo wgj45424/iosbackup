@@ -120,17 +120,13 @@ func (app *application) checkAndBackup(udid string, config backupConfig, deviceS
 	}
 
 	now := app.nowTime()
-	if !inBackupWindow(now, config.StartTime, config.EndTime) {
-		return
-	}
 
 	// 检查距离上次备份的时间（优先使用配置中的时间）
 	lastBackupTime := config.LastBackup
 	if lastBackupTime.IsZero() {
 		lastBackupTime = device.LastBackup
 	}
-	timeSinceLastBackup := now.Sub(lastBackupTime)
-	if timeSinceLastBackup < time.Duration(config.BackupInterval)*time.Hour {
+	if !backupScheduleDue(now, lastBackupTime, config) {
 		return
 	}
 
@@ -163,6 +159,29 @@ func (app *application) checkAndBackup(udid string, config backupConfig, deviceS
 		deviceStatus.Connection, updatedDevice.BatteryLevel, updatedDevice.IsCharging)))
 
 	app.performBackupWithConnection(udid, deviceStatus.Connection, sessionID)
+}
+
+func backupScheduleDue(now, lastBackup time.Time, config backupConfig) bool {
+	if !inBackupWindow(now, config.StartTime, config.EndTime) {
+		return false
+	}
+	if config.ScheduleMode != "weekly" {
+		return now.Sub(lastBackup) >= time.Duration(config.BackupInterval)*time.Hour
+	}
+	// 跨午夜的窗口归属于开始日；按日历周调度，避免夏令时和完成时间推迟下一周。
+	start, err := time.Parse("15:04", config.StartTime)
+	if err != nil {
+		return false
+	}
+	day := now
+	if now.Hour()*60+now.Minute() < start.Hour()*60+start.Minute() {
+		day = day.AddDate(0, 0, -1)
+	}
+	if int(day.Weekday()) != config.BackupWeekday {
+		return false
+	}
+	windowStart := time.Date(day.Year(), day.Month(), day.Day(), start.Hour(), start.Minute(), 0, 0, now.Location())
+	return lastBackup.Before(windowStart)
 }
 
 // updateDeviceStatusForBackup 更新设备状态用于备份检查
